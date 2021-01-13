@@ -95,8 +95,11 @@ class Player {
     }
 
     getAverage() {
-        const sum = this.scores.reduce((sum, num) => sum + num);
-        this.average = sum / this.scores.length;
+        let value = 0;
+        for (let i = 0; i < this.scores.length; i++) {
+            value += this.scores[i];
+        }
+        this.average = value / this.scores.length;
         return this.average;
     }
 }
@@ -107,43 +110,70 @@ class LeaderBoard {
     }
 
     add_score = (player_id, score) => {
-        const player;
+        // create new player if not in players -- fill out players obj
+        // add score to that player
         if (this.players[player_id]) {
-            player = this.players[player_id];
+            this.players[player_id].scores.push(score);
         } else {
-            player = new Player();
-            this.players[player_id] = player;
+            const player = new Player();
+            player.scores.push(score);
+            this.players[player_id] = player; // this.players = { player_id: player }
         }
-        player.scores.push(score);
-        return player.getAverage();
+        // get the average
+        return this.players[player_id].getAverage();
     };
 
     top = (num_players) => {
-        const tops = [];
-        while (tops.length < num_players) {
-            maxScore = 0;
-            maxScoreholder = '';
-            for (let player_id in this.players) {
-                const player = this.players[player_id];
-                if (player.average > maxScore && tops.indexOf(player_id) === -1) {
-                    maxScore = player.average;
-                    maxScoreholder = player_id;
-                }
-            }
-            tops.push(maxScoreholder);
+        // return array of top players that is num_players long
+        // find players with the top average scores
+        const scores = [];
+        for (let id in this.players) {
+            scores.push([id, this.players[id].average]);
         }
-        return tops;
+        const sorted_scores = quickSort(scores);
+        // take the num_players long slice from the front
+        let top_players = [];
+        for (let player of sorted_scores.slice(0, num_players)) {
+            top_players.push(parseInt(player[0]));
+        }
+        return top_players;
     };
 
     reset = (player_id) => {
-        if (!this.players[player_id]) {
-            return 'Cannot reset player not on board';
+        //set player scores to empty and average to 0
+        if (this.players[player_id]) {
+            this.players[player_id].scores = [];
+            this.players[player_id].average = 0;
+        } else {
+            return 'Player does not exist';
         }
-        const player = this.players[player_id];
-        player.scores = [];
-        player.average = 0;
     };
 }
+
+quickSort = (arr) => {
+    //arr is array of arrays [id, score]
+    // reverse sort the array of arrays by second index of each inner array
+    // input: [[id4, score4], [id1, score1]....]
+    // output: [[id1, score1], [id2, score2]....]
+
+    // quick sort splits the array with a pivot by getting everything lower into one group and everyhitng higher into another
+    // moving until we have what we know are sorted units
+
+    if (arr.length <= 1) {
+        return arr;
+    } // basecase
+    let pivot = arr[arr.length - 1];
+    let lower = [];
+    let higher = [];
+    for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i][1] < pivot[1]) {
+            lower.push(arr[i]);
+        } else {
+            higher.push(arr[i]);
+        }
+    }
+    return quickSort(higher).concat([pivot], quickSort(lower)); // recursive call
+};
 
 // Test code here
 
@@ -157,8 +187,29 @@ function array_equals(a, b) {
     return true;
 }
 
+function testSort() {
+    let arr = [
+        [1, 4],
+        [7, 2],
+        [9, 5],
+        [6, 3],
+        [8, 1]
+    ];
+    let sortedArr = quickSort(arr);
+    console.log('Sort works?', sortedArr, '=?', [
+        [9, 5],
+        [1, 4],
+        [6, 3],
+        [7, 2],
+        [8, 1]
+    ]);
+}
+
+testSort();
+
 var leader_board = new LeaderBoard();
 
+console.log('Add score should return the average.');
 leader_board.add_score(1, 50);
 console.log(leader_board.add_score(2, 80) == 80);
 console.log(leader_board.add_score(2, 70) == 75);
