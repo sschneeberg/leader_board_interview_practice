@@ -107,7 +107,7 @@ class LeaderBoard {
     }
 
     add_score = (player_id, score) => {
-        const player;
+        let player = '';
         if (this.players[player_id]) {
             player = this.players[player_id];
         } else {
@@ -121,16 +121,16 @@ class LeaderBoard {
     top = (num_players) => {
         const tops = [];
         while (tops.length < num_players) {
-            maxScore = 0;
-            maxScoreholder = '';
+            let maxScore = 0;
+            let maxScoreholder = '';
             for (let player_id in this.players) {
                 const player = this.players[player_id];
-                if (player.average > maxScore && tops.indexOf(player_id) === -1) {
+                if (player.average >= maxScore && tops.indexOf(parseInt(player_id)) === -1) {
                     maxScore = player.average;
                     maxScoreholder = player_id;
                 }
             }
-            tops.push(maxScoreholder);
+            tops.push(parseInt(maxScoreholder));
         }
         return tops;
     };
@@ -159,7 +159,9 @@ function array_equals(a, b) {
 
 var leader_board = new LeaderBoard();
 
-leader_board.add_score(1, 50);
+console.log('Add score should return the average.');
+console.log(leader_board.add_score(1, 50) == 50);
+console.log(leader_board.add_score(1, 90) == 70);
 console.log(leader_board.add_score(2, 80) == 80);
 console.log(leader_board.add_score(2, 70) == 75);
 console.log(leader_board.add_score(2, 60) == 70);
